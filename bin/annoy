@@ -1,0 +1,81 @@
+#!/usr/local/bin/ruby
+
+require 'hipchat'
+
+def client
+  @client ||= HipChat::Client.new(ENV['API_TOKEN'], api_version: 'v2')
+end
+
+def user
+  @user ||= client.user(ENV['TARGET'])
+end
+
+def history
+  JSON.parse(user.history)['items']
+end
+
+def last_message
+  history.first
+end
+
+def wait_time
+  (ENV['WAIT_TIME'] || 3600).to_i
+end
+
+def send_html_message(html)
+  user.send(
+    html,
+    message_format: 'html',
+    notify: true
+  )
+end
+
+def send_timed_message(phrase, time=wait_time, color: black, weight: 400)
+  send_html_message(<<-HTML)
+    <span style="color:#{color};font-weight:#{weight}">#{phrase}</span>
+  HTML
+
+  last = last_message
+  sleep time
+  if last_message != last
+    puts "Got through!!!!"
+    exit
+  end
+end
+
+progression = {
+  green: [
+    'So, about that question...',
+    'Just looking for an answer...',
+    'I hope I\'m not troubling you.',
+    'Is there a better time to bug you about this?'
+  ],
+  blue: [
+    'Escalating.',
+    'I hope this doesn\'t seem aggressive, just want an answer.',
+    'Hello? Anybody home?'
+  ],
+  yellow: [
+    'Lots of meetings today, huh?',
+    'Seems like a rough day...',
+    'Are you OK?'
+  ],
+  orange: [
+    'I know you\'re busy, but it\'s been quite some time...',
+    "Hey, did you hear there's free lunch today? Just kidding! But now that you looked..."
+  ],
+  red: [
+    'Alright, I\'m out of cleverness, just gonna start counting the messages. This is attempt #13 to reach you.'
+  ]
+}
+
+%i(green blue yellow orange red).each_with_index do |color, index|
+  progression[color].each do |phrase|
+    weight = 400 + 100 * index
+    send_timed_message(phrase, color: color, weight: weight)
+  end
+end
+
+(14..Float::INFINITY).each do |i|
+  send_timed_message("This is attempt ##{i} to reach you.", color: :red, weight: 900)
+end

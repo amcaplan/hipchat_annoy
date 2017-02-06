@@ -1,0 +1,19 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    hipchat (1.5.4)
+      httparty
+      mimemagic
+    httparty (0.14.0)
+      multi_xml (>= 0.5.2)
+    mimemagic (0.3.2)
+    multi_xml (0.6.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hipchat
+
+BUNDLED WITH
+   1.11.2
